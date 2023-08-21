@@ -1,0 +1,54 @@
+version: "3.3"
+
+services:
+  nfs-server:
+    image:  erichough/nfs-server
+    hostname: nfs-server
+    container_name: nfs-server
+    environment:
+      NFS_EXPORT_0: '/users_home                  *(rw,no_subtree_check)'
+    privileged: True
+    expose:
+      - "2049"
+      - "111"
+      - "32765"
+      - "32767"
+    volumes:
+      - users_home:/users_home
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost"]
+#      interval: 1m30s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 40s
+#      start_interval: 5s
+
+  nfs-c1:
+    image: nfs-tester
+    hostname: nfs-c1
+    container_name: nfs-c1
+    volumes:
+      - users_home_nfs:/users_home
+    depends_on:
+      nfs-server:
+        condition: service_started
+   
+   
+volumes:
+  users_home:
+  users_home_nfs:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=172.29.0.2,nolock,soft,rw
+      device: :/users_home
+
+#mount nfs-server:/users_home /tmp/mnt  -o nolock
+
+
+#  docker volume create \
+#  --driver local \
+#  --opt type=nfs \
+#  --opt o=addr=$NFS_SERVER,$NFS_OPTS \
+#  --opt device=:$NFS_SHARE \
+#  $NFS_VOL_NAME
