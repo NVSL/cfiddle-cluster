@@ -17,7 +17,9 @@ services:
     volumes:
       - var_lib_mysql:/var/lib/mysql
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
 
   slurmdbd:
     image: cfiddle-cluster:21.08.6.1
@@ -34,7 +36,11 @@ services:
     depends_on:
       - mysql
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
+#    deploy:
+#      mode: global
 
   slurmctld:
     image: cfiddle-cluster:21.08.6.1
@@ -50,7 +56,11 @@ services:
     depends_on:
       - slurmdbd
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
+#    deploy:
+#      mode: global
 
   c1: &worker
     image: cfiddle-cluster:21.08.6.1
@@ -67,7 +77,11 @@ services:
     depends_on:
       - slurmctld
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
+#    deploy:
+#      mode: global
 
 
 
