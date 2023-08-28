@@ -13,13 +13,13 @@ services:
       - var_lib_mysql:/var/lib/mysql
     deploy:
       mode: replicated
-      replicas: 1  
+      replicas: 1
       placement:
         constraints:
           - "node.labels.slurm_role==head_node"
 
   slurmdbd-srv:
-    image: cfiddle-cluster:21.08.6.1
+    image: cfiddle-cluster:${IMAGE_TAG}
     build:
       context: .
     command: ["slurmdbd"]
@@ -38,7 +38,7 @@ services:
           - "node.labels.slurm_role==head_node"
 
   slurmctld-srv:
-    image: cfiddle-cluster:21.08.6.1
+    image: cfiddle-cluster:${IMAGE_TAG}
     command: ["slurmctld"]
     hostname: slurmctld
     volumes:
@@ -56,7 +56,7 @@ services:
           - "node.labels.slurm_role==head_node"
 
   userhost-srv:
-    image: cfiddle-cluster:21.08.6.1
+    image: cfiddle-cluster:${IMAGE_TAG}
     command: ["userhost"]
 #    entrypoint: ["/usr/bin/bash", "-c"]
 #    command: ["while true; do sleep 30;done"]
@@ -77,7 +77,7 @@ services:
           - "node.labels.slurm_role==head_node"
 
   c1-srv: &worker
-    image: cfiddle-cluster:21.08.6.1
+    image: cfiddle-cluster:${IMAGE_TAG}
     command: ["slurmd"]
     hostname: c1
     volumes:
@@ -127,8 +127,7 @@ volumes:
     driver: local
     driver_opts:
       type: nfs
-      o: addr=139.178.86.127,nolock,soft,rw
+      o: addr=${HEAD_ADDR},nolock,soft,rw
       device: :/home
 
 #mount nfs-server:/users_home /tmp/mnt  -o nolock
-

@@ -169,7 +169,8 @@ Start off by
 SSH in, install `git`, and  checkout this repo:
 
 ```
-apt-get update
+export DEBIAN_FRONTEND=noninteractive
+apt-get update && apt-get upgrade -y
 apt-get install -y git
 git clone https://github.com/NVSL/cfiddle-cluster.git
 ```
@@ -319,12 +320,13 @@ modprobe nfs
 modprobe nfsd
 apt-get install -y nfs-kernel-server
 echo '/home                  *(rw,no_subtree_check)' >> /etc/exports
+exportfs -ra
 ```
 
 You can test it with :
 
 ```
-mount -t nfs localhost:/users_home /mnt
+mount -t nfs localhost:/home /mnt
 ls /mnt/
 ```
 
@@ -483,9 +485,6 @@ out of the user node container.
 
 
 
-
-
-
 ## Alternative Configurations
 
 The system we just built has some draw backs:
@@ -524,3 +523,33 @@ https://github.com/nateGeorge/slurm_gpu_ubuntu
 ## Munge Key
 
 It's created in the docker image we use.  This may not be a good choice.  You could mount it over NFS.
+
+## Notes
+
+### Where To Get Servers
+
+For testing we use [Equinix Metal](https://deploy.equinix.com/).
+Their `c3.small.x86` instances are reasonably cheap ($0.75/hour) and
+work well.  They are not available in all zones, so you might have to
+hunt for them when provisioning machines.
+
+AWS has bare metal servers but they are huge (e.g., 100s
+of cores) and very expensive.
+
+For courses we use a cluster of 12 small Intel blade servers provided
+by our institution.  We used to use Equinix for courses too, but it is a bit pricey.
+
+### How Many Servers Do You Need?
+
+We have typically have ~215 students and at peak times (e.g., right
+before a homework is due), the 12 servers are saturated.
+
+When we were using Equinix, we would manually scale up the cluster
+size when load spiked.  The problem is that Equinix sometimes runs out
+of a particular instance type, which can be a problem because results
+need to match across machines.  We just told students to work early
+and hoped instances were available.
+
+
+### 
+
