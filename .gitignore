@@ -29,3 +29,5 @@ Untitled*.ipynb
 *~
 *.egg-info
 __pycache__
+cluster_group.txt
+cluster_password.txt

@@ -9,39 +9,32 @@ services:
       NFS_EXPORT_0: '/users_home                  *(rw,no_subtree_check)'
     privileged: True
     expose:
-      - "2049"
       - "111"
+      - "2049"
       - "32765"
       - "32767"
+#    ports:
+#      - "111:111"
+#      - "2049:2049"
+#      - "32765:32765"
+#      - "32767:32767"
+#    network_mode: "host"
     volumes:
       - users_home:/users_home
-#    healthcheck:
-#      test: ["CMD", "curl", "-f", "http://localhost"]
-#      interval: 1m30s
-#      timeout: 10s
-#      retries: 3
-#      start_period: 40s
-#      start_interval: 5s
-
-  nfs-c1:
-    image: nfs-tester
-    hostname: nfs-c1
-    container_name: nfs-c1
-    volumes:
-      - users_home_nfs:/users_home
-    depends_on:
-      nfs-server:
-        condition: service_started
-   
-   
+  tester:
+    image: ubuntu:jammy
+    hostname: tester
+    command: "bash -c 'while true; do sleep 30;done'"
+    
 volumes:
   users_home:
-  users_home_nfs:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=172.29.0.2,nolock,soft,rw
-      device: :/users_home
+  
+#  users_home_nfs:
+ #   driver: local
+ #   driver_opts:
+ #     type: nfs
+ #     o: addr=172.29.0.2,nolock,soft,rw
+ #     device: :/users_home
 
 #mount nfs-server:/users_home /tmp/mnt  -o nolock
 

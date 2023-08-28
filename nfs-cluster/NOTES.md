@@ -1,5 +1,20 @@
 # Dockerized nfs
 
+# Second Try
+
+Get NFS working and NFS volumes working so slurm nodes could use them.
+
+```
+modprobe nfs
+modprobe nfsd
+docker-compose up
+```
+
+
+# First Try
+
+I wanted to integrate this into the docker-compose.yml for the whole slurm cluster. 
+
 This didn't work, really.   I couldn't get it work "out of the box".  This could be an alternate way to set up NFS, but it doesn't seem much easier than just using the host machine as the server...
 
 ## Create Real Volumne

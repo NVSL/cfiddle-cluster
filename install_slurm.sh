@@ -13,19 +13,18 @@ useradd -r -g munge --uid=998 munge || true
 
 apt-get update --fix-missing --allow-releaseinfo-change
 apt-get install -y \
-       docker-compose \
        gnupg \
-       munge \
        mariadb-server \
        psmisc \
        bash-completion \
        slurmd slurm slurm-client slurmdbd slurmctld \
        munge
 
+# the step above generate /etc/munge.key, so it's shared across all the containers.
+# so we don't need this:
+# /sbin/create-munge-key
+
 apt-get clean -y
-
-#docker build --build-arg SLURM_TAG=$SLURM_TAG -t slurm-docker-cluster:$IMAGE_TAG .
-
 
 mkdir -p /etc/sysconfig/slurm \
         /var/spool/slurmd \
@@ -49,7 +48,6 @@ touch /var/lib/slurmd/node_state \
         /var/lib/slurmd/qos_usage \
         /var/lib/slurmd/fed_mgr_state \
 
-#/sbin/create-munge-key
 
 # the entrypoint script uses this.
 set -ex \

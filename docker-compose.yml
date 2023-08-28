@@ -1,14 +1,9 @@
 version: "3"
 
 services:
-  mysql:
+  mysql-srv: # the -srv is to distinguish between the service name and the hostname.  See https://stackoverflow.com/a/76966725/3949036
     image: mysql:5.7
     hostname: mysql
-#    container_name: mysql2
-    networks:
-      default:
-        aliases:
-          - mysql
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: "yes"
       MYSQL_DATABASE: slurm_acct_db
@@ -18,74 +13,90 @@ services:
       - var_lib_mysql:/var/lib/mysql
     deploy:
       mode: replicated
-      replicas: 1
-      endpoint_mode: dnsrr
+      replicas: 1  
+      placement:
+        constraints:
+          - "node.labels.slurm_role==head_node"
 
-  slurmdbd:
+  slurmdbd-srv:
     image: cfiddle-cluster:21.08.6.1
     build:
       context: .
     command: ["slurmdbd"]
     hostname: slurmdbd
     volumes:
-      - etc_munge:/etc/munge
+#      - etc_munge:/etc/munge
       - etc_slurm:/etc/slurm
       - var_log_slurm:/var/log/slurm
-#    expose:
-#      - 6819
     depends_on:
-      - mysql
+      - mysql-srv
     deploy:
       mode: replicated
       replicas: 1
-      endpoint_mode: dnsrr
-#    deploy:
-#      mode: global
+      placement:
+        constraints:
+          - "node.labels.slurm_role==head_node"
 
-  slurmctld:
+  slurmctld-srv:
     image: cfiddle-cluster:21.08.6.1
     command: ["slurmctld"]
     hostname: slurmctld
     volumes:
-      - etc_munge:/etc/munge
+#      - etc_munge:/etc/munge
       - etc_slurm:/etc/slurm
       - slurm_jobdir:/data
       - var_log_slurm:/var/log/slurm
-#    expose:
-#      - 6817
     depends_on:
-      - slurmdbd
+      - slurmdbd-srv
     deploy:
       mode: replicated
       replicas: 1
-      endpoint_mode: dnsrr
-#    deploy:
-#      mode: global
+      placement:
+        constraints:
+          - "node.labels.slurm_role==head_node"
 
-  c1: &worker
+  userhost-srv:
+    image: cfiddle-cluster:21.08.6.1
+    command: ["userhost"]
+#    entrypoint: ["/usr/bin/bash", "-c"]
+#    command: ["while true; do sleep 30;done"]
+    hostname: userhost
+    volumes:
+#      - etc_munge:/etc/munge
+#      - etc_slurm:/etc/slurm
+#      - slurm_jobdir:/data
+#      - var_log_slurm:/var/log/slurm
+      - home_nfs:/home
+    depends_on:
+      - slurmctld-srv
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.slurm_role==head_node"
+
+  c1-srv: &worker
     image: cfiddle-cluster:21.08.6.1
     command: ["slurmd"]
     hostname: c1
     volumes:
-      - etc_munge:/etc/munge
+#      - etc_munge:/etc/munge
       - etc_slurm:/etc/slurm
       - slurm_jobdir:/data
       - var_log_slurm:/var/log/slurm
-      - cfiddle_scratch:/cfiddle_scratch
- #   expose:
- #     - 6818
+#      - cfiddle_scratch:/cfiddle_scratch
+      - home_nfs:/home
     depends_on:
-      - slurmctld
+      - slurmctld-srv
     deploy:
       mode: replicated
       replicas: 1
-      endpoint_mode: dnsrr
-#    deploy:
-#      mode: global
+      placement:
+        constraints:
+          - "node.labels.slurm_role==worker"
 
-
-
-  c2: &c2
+  c2-srv: &c2
     <<: *worker
     hostname: c2
 
@@ -105,25 +116,19 @@ services:
 #    <<: *worker
 #    hostname: c5
 
-#  watcher:
- #   image: cfiddle-cluster:21.08.6.1
-#    entrypoint: ["/usr/bin/bash", "-c"]
-#3    command: ["while true; do sleep 10;done"]
-#    hostname: watcher
-#    volumes:
-#      - etc_munge:/etc/munge
-#      - etc_slurm:/etc/slurm
-#      - slurm_jobdir:/data
-#      - var_log_slurm:/var/log/slurm
-#      - cfiddle_scratch:/cfiddle_scratch
-#    depends_on:
-#      - slurmctld
-
 volumes:
-  etc_munge:
+ # etc_munge:
   etc_slurm:
   slurm_jobdir:
   var_lib_mysql:
   var_log_slurm:
   cfiddle_scratch:
+  home_nfs:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=139.178.86.127,nolock,soft,rw
+      device: :/home
+
+#mount nfs-server:/users_home /tmp/mnt  -o nolock
 

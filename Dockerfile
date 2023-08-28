@@ -15,7 +15,6 @@ RUN mkdir /slurm
 RUN mkdir /build
 WORKDIR /slurm
 
-
 COPY ./SLURM_TAG ./
 COPY ./IMAGE_TAG ./
 
@@ -25,19 +24,26 @@ COPY ./slurmdbd.conf ./
 COPY ./install_slurm.sh ./
 RUN  ./install_slurm.sh
 
-
-
 #COPY . /build/delegate-function   
 #RUN (cd /build/delegate-function; /opt/conda/bin/pip install -e .)
 #RUN ls /opt/conda/lib/python3.10/site-packages/cfiddle*
 #COPY ./install_cfiddle.sh ./
 #RUN ./install_cfiddle.sh 
 
-RUN groupadd cfiddlers
-RUN groupadd --gid 1001 docker_users
-RUN useradd -g cfiddlers -p fiddle -G docker_users -s /usr/bin/bash test_fiddler
-RUN useradd -r -s /usr/sbin/nologin -u 7000 -G docker_users -p fiddle cfiddle 
-#COPY ./testing-setup/cfiddle_sudoers /etc/sudoers.d
+#RUN groupadd cfiddlers
+#RUN groupadd --gid 1001 docker_users
+#RUN useradd -r -s /usr/sbin/nologin -u 7000 -G docker_users -p fiddle cfiddle
+
+
+# This is very kludgy.  Definitely not produciton ready
+COPY test_slurm.sh ./
+COPY cluster_password.txt ./
+RUN cat ./cluster_password.txt >> /etc/passwd
+COPY cluster_group.txt ./
+RUN cat ./cluster_group.txt >> /etc/group
+
+
+#COPY ./cfiddle_sudoers /etc/sudoers.d
 
 HEALTHCHECK NONE
 

@@ -1,1 +1,1 @@
-nfs-server:/users_home /users_home  nfs      nolock,rw    0       0
+localhostr:/users_home /home nfs      nolock,rw    0       0
