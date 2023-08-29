@@ -22,7 +22,7 @@ COPY ./slurmdbd.conf ./
 
 COPY ./install_slurm.sh ./
 COPY ./env.sh ./
-RUN  ( . ./env.sh; env; ./install_slurm.sh --client-only )
+RUN  ( . ./env.sh; env; ./install_slurm.sh  --client-only )
 
 COPY . /build/cfiddle-cluster
 #RUN (cd /build/cfiddle-cluster; /opt/conda/bin/pip install -e .)
@@ -38,7 +38,7 @@ COPY usernode-entrypoint.sh /usr/local/bin/usernode-entrypoint.sh
 COPY user-entrypoint.sh /usr/local/bin/user-entrypoint.sh
 RUN chmod a+x /usr/local/bin/user-entrypoint.sh /usr/local/bin/usernode-entrypoint.sh
 
-USER jovyan
+#USER jovyan
 
 HEALTHCHECK NONE
 

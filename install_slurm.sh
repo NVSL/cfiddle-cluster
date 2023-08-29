@@ -13,10 +13,8 @@ SLURM_TAG=$(cat SLURM_TAG)
 IMAGE_TAG=$(cat IMAGE_TAG)
 GOSU_VERSION=1.11
 
-if [ $CLIENT_ONLY = "no" ]; then
-    groupadd -r --gid=$SLURM_GID slurm 
-    useradd -r -g slurm --uid=$SLURM_UID slurm
-fi
+groupadd -r --gid=$SLURM_GID slurm 
+useradd -r -g slurm --uid=$SLURM_UID slurm
 
 groupadd -r --gid=$MUNGE_GID munge 
 useradd -r -g munge --uid=$MUNGE_UID munge
