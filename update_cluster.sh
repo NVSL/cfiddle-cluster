@@ -2,14 +2,16 @@
 
 set -ex
 
-docker compose build --progress=plain
+grep 'cfiddle\|test_\|jovyan' /etc/passwd > cluster_password.txt
+grep 'cfiddle\|test_\|jovyan' /etc/group > cluster_group.txt
+
+
+docker compose --progress=plain  build
 
 ./distribute_images.sh
 
-docker stack rm slurm-stack
-
-docker stack deploy -c docker-compose.yml slurm-stack || true
-docker stack deploy -c docker-compose.yml slurm-stack || true
+./stop_cluster.sh
+./start_cluster.sh
 
 docker service ls
 docker container ls

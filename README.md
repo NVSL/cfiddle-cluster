@@ -290,14 +290,15 @@ permanent/maintainable solution to this.
 ```
 useradd -p test_user1 test_user1 -m 
 useradd -p test_user2 test_user2 -m
+useradd -p jovyan -g 100 -u 1000 jovyan -m
 ```
 
 Now, for a bug kludge: We need to get these users into docker images
 so they are available on the worker nodes:
 
 ```
-grep 'cfiddle\|test_' /etc/passwd > cluster_password.txt
-grep 'cfiddle\|test_' /etc/group > cluster_group.txt
+grep 'cfiddle\|test_\|jovyan' /etc/passwd > cluster_password.txt
+grep 'cfiddle\|test_\|jovyan' /etc/group > cluster_group.txt
 ```
 
 #root@cfiddle-cluster-testing:~/cfiddle-cluster# groupadd --gid 1001 docker_users
@@ -436,7 +437,7 @@ and dive deeper with
 docker service logs slurm-stack_slurmctld-srv
 ```
 
-Step 9:  Test The Slurm Cluster
+## Step 9:  Test The Slurm Cluster
 
 Now we can test the operation of the Slurm cluster.  To do that we'll
 start a shell in user node container, but first we need its name:
@@ -482,6 +483,28 @@ and then you can run some jobs with:
 Which will show you a live-updating view of the job queue.  When it's
 empty (or you get board), Control-C to quit, and then `exit` to get
 out of the user node container.
+
+## Step 10: Get Jupyter Running
+
+First, we need to populate the default Jupyter user, `jovyan`'s home
+directory by copying its contents out of the container into the share
+home directories:
+
+```
+docker create --name extract_jovyan cfiddle-user
+docker cp extract_jovyan:/home/jovyan /home/
+chown -R jovyan /home/jovyan
+docker container rm extract_jovyan
+```
+
+You can access Jupyter.  The user node containe exposes a Jupyter
+server on port 8888.  And you should be able to access it at
+
+```
+http://<your head node's external ID address>:8888/lab?token=slurmify
+```
+
+## Step 11: Use CFiddle
 
 
 

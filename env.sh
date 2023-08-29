@@ -8,4 +8,12 @@ else
 
     export DOCKERHUB_USERNAME=stevenjswanson
     export IMAGE_TAG=$(cat IMAGE_TAG)
+
+    export SLURM_UID=990
+    export SLURM_GID=990
+
+    # these are the values that get set when I build the images.  Yours might be different.
+    export MUNGE_UID=102 
+    export MUNGE_GID=102
+    
 fi    
