@@ -8,7 +8,6 @@ else
 CLIENT_ONLY="no"
 fi
 
-
 SLURM_TAG=$(cat SLURM_TAG)
 IMAGE_TAG=$(cat IMAGE_TAG)
 GOSU_VERSION=1.11

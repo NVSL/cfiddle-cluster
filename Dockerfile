@@ -7,8 +7,8 @@ LABEL org.opencontainers.image.source="https://github.com/NVSL/delegate_function
       maintainer="Steven Swanson"
 
 USER root
-RUN apt-get update
-RUN apt-get install -y host iputils-ping sudo gosu
+RUN apt-get update --fix-missing
+RUN apt-get install -y host iputils-ping sudo gosu git
 
 RUN mkdir /slurm
 RUN mkdir /build
@@ -24,11 +24,15 @@ COPY ./install_slurm.sh ./
 COPY ./env.sh ./
 RUN  ( . ./env.sh; env; ./install_slurm.sh)
 
-#COPY . /build/delegate-function   
-#RUN (cd /build/delegate-function; /opt/conda/bin/pip install -e .)
-#RUN ls /opt/conda/lib/python3.10/site-packages/cfiddle*
-#COPY ./install_cfiddle.sh ./
-#RUN ./install_cfiddle.sh 
+
+COPY ./cfiddle ./cfiddle
+COPY ./delegate-function ./delegate-function
+COPY ./hungwei-class ./hungwei-class
+
+COPY ./install_cfiddle.sh  ./
+RUN  ( . ./env.sh; ./install_cfiddle.sh )
+RUN  (. ./env.sh; cd hungwei-class; pip install -e .)
+
 
 #RUN groupadd cfiddlers
 #RUN groupadd --gid 1001 docker_users
