@@ -2,10 +2,12 @@
 
 set -ex
 
-docker tag cfiddle-cluster:$IMAGE_TAG $DOCKERHUB_USERNAME/cfiddle-cluster:$IMAGE_TAG
-docker push $DOCKERHUB_USERNAME/cfiddle-cluster:$IMAGE_TAG
-ssh root@$WORKER_0_ADDR docker pull $DOCKERHUB_USERNAME/cfiddle-cluster:$IMAGE_TAG
-ssh root@$WORKER_1_ADDR docker pull $DOCKERHUB_USERNAME/cfiddle-cluster:$IMAGE_TAG
-ssh $WORKER_0_ADDR  docker image tag $DOCKERHUB_USERNAME/cfiddle-cluster:$IMAGE_TAG cfiddle-cluster:$IMAGE_TAG
-ssh $WORKER_1_ADDR  docker image tag $DOCKERHUB_USERNAME/cfiddle-cluster:$IMAGE_TAG cfiddle-cluster:$IMAGE_TAG
+for IMAGE_NAME in cfiddle-cluster:$IMAGE_TAG cfiddle-user:latest; do 
+    docker tag $IMAGE_NAME $DOCKERHUB_USERNAME/$IMAGE_NAME
+    docker push $DOCKERHUB_USERNAME/$IMAGE_NAME
+    ssh root@$WORKER_0_ADDR docker pull $DOCKERHUB_USERNAME/$IMAGE_NAME
+    ssh root@$WORKER_1_ADDR docker pull $DOCKERHUB_USERNAME/$IMAGE_NAME
+    ssh $WORKER_0_ADDR  docker image tag $DOCKERHUB_USERNAME/$IMAGE_NAME $IMAGE_NAME
+    ssh $WORKER_1_ADDR  docker image tag $DOCKERHUB_USERNAME/$IMAGE_NAME $IMAGE_NAME
+done
 

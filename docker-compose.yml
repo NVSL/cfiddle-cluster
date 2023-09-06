@@ -60,6 +60,8 @@ services:
       context: .
       dockerfile: ./user.Dockerfile
     image: cfiddle-user:latest
+    environment:
+      DELEGATE_FUNCTION_DEBUG_ENABLED: "yes"
     hostname: userhost
     command: ["start-notebook.sh", "--NotebookApp.token='slurmify'" ]
     user: root
@@ -81,12 +83,20 @@ services:
   c1-srv: &worker
     image: cfiddle-cluster:${IMAGE_TAG}
     command: ["slurmd"]
+    environment:
+        DELEGATE_FUNCTION_DEBUG_ENABLED: "yes"
     hostname: c1
     volumes:
       - etc_munge:/etc/munge
 #      - etc_slurm:/etc/slurm
       - var_log_slurm:/var/log/slurm
       - home_nfs:/home
+      - cfiddle_scratch:/cfiddle_scratch
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+    cap_add:
+      - ALL
     depends_on:
       - slurmctld-srv
     deploy:
@@ -125,6 +135,7 @@ volumes:
       device: :/etc/munge
   etc_slurm:
   slurm_jobdir:
+  cfiddle_scratch:
   var_lib_mysql:
   var_log_slurm:
   home_nfs:
@@ -133,5 +144,5 @@ volumes:
       type: nfs
       o: addr=${HEAD_ADDR},nolock,soft,rw
       device: :/home
-
+    
 #mount nfs-server:/users_home /tmp/mnt  -o nolock

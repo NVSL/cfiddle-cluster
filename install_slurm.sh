@@ -15,6 +15,9 @@ GOSU_VERSION=1.11
 groupadd -r --gid=$SLURM_GID slurm 
 useradd -r -g slurm --uid=$SLURM_UID slurm
 
+grep $MUNGE_UID /etc/passwd || true
+grep $MUNGE_GID /etc/group || true
+
 groupadd -r --gid=$MUNGE_GID munge 
 useradd -r -g munge --uid=$MUNGE_UID munge
 
@@ -29,7 +32,7 @@ apt-get install -y \
 	slurmd slurm slurm-client slurmdbd slurmctld \
 	munge
 else
-apt-get install -y slurm-client munge
+    apt-get install -y slurm-client munge
 fi
 
 # the step above generate /etc/munge.key, so it's shared across all the containers.

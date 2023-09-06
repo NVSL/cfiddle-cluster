@@ -545,7 +545,26 @@ https://github.com/nateGeorge/slurm_gpu_ubuntu
 
 ## Munge Key
 
-It's created in the docker image we use.  This may not be a good choice.  You could mount it over NFS.
+Grab the munge uid and group we will use, and build the munge use and group
+
+```
+. env.sh
+groupadd munge -g $MUNGE_GID
+useradd munge -u $MUNGE_UID -g $MUNGE_GID
+```
+
+Install `munge` which will generate `/etc/munge/munge.key` as a side effect.
+
+```
+apt-get install -y munge 
+```
+
+Later, if you need to change, it 
+
+```
+mungekey
+chown munge:munge /etc/munge/munge.key
+```
 
 ## Notes
 

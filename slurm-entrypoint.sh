@@ -1,9 +1,11 @@
 #!/bin/bash
 set -e
 
+
 if [ "$1" = "slurmdbd" ]
 then
     echo "---> Starting the MUNGE Authentication service (munged) ..."
+
     service munge start
 
     echo "---> Starting the Slurm Database Daemon (slurmdbd) ..."
