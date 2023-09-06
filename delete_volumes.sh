@@ -3,6 +3,6 @@
 set -ex
 
 docker volume rm $(docker volume ls | grep slurm-stack | cut -f 6 -d ' ') || true
-ssh $WORKER_0_ADDR docker volume rm $(ssh $WORKER_0_ADDR docker volume ls | grep slurm-stack | cut -f 6 -d " ")
-ssh $WORKER_1_ADDR docker volume rm $(ssh $WORKER_1_ADDR docker volume ls | grep slurm-stack | cut -f 6 -d " ")
-
+for WORKER in $WORKER_ADDRS; do 
+    ssh $WORKER docker volume rm $(ssh $WORKER docker volume ls | grep slurm-stack | cut -f 6 -d " ")
+done

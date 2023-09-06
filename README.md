@@ -28,10 +28,10 @@ The instructions and code in this repo will let you assemble the following:
 3.  An appropriate configuration for cfiddle so it'll run jobs on the cluster.
 4.  A exampler _user node_ that is not part of the slurm cluster but serves Jupyter Notebooks that can submit cfiddle jobs to the cluster.
 5.  Three docker images:
-    * One for the head node and worker nodes
-    * One for the user node
-    * A sandbox docker image to run the user's code.
-6.  A couple test user accounts to show that everything works.
+    * One for the head node and worker nodes (`cfiddle-cluster')
+    * One for the user node (`cfiddle-user`)
+    * A sandbox docker image to run the user's code (`cfiddle-sandbox`)
+6.  A couple test user accounts to show that everything works (`test_cfiddle.py`)
 
 We will assume that the cluster is dedicated to running CFiddle jobs
 and nothing else.
@@ -46,19 +46,17 @@ the code someplace other than the local machine.
 That "someplace" will be one in single-use "sandbox" docker container
 running on one of the worker nodes in our Slurm cluster.
 `delegate_function` will accomplish this by submitting a Slurm job to
-the cluster and spawning the sandbox container.
+the cluster.  That job will then spawn the sandbox container on the
+worker node.
 
 The user node and the worker nodes will all share a single `/home/`
 directory so the users files are available to their job running on the
 slurm cluster.
 
-Slurm will schedule the job to a proxy container, and the job will
-spawn a sandbox container execute the code, collect the outputs, and
-return them to the user node.
-
 How, exactly, `delegate_function` bundles up the CFiddle code and its
 inputs and then collects its outputs is outside the scope of this
-document.
+document.  But you can read about it in the `delegate_funciton` source
+code.
 
 ### What We Provide and What You Need to Provide
 
@@ -67,22 +65,27 @@ as possible to set up a CFiddle cluster, so most the implementation
 this document describes is suitable for use in deployment (although
 you need to customize some configurations files).
 
-However, there are two aspects of the system that 'fakes' because the
-real-life implementations are varied, potentially complex, and not
-Cfiddle- or Slurm-related.  These are:
+However, there are a few places that you will need to customize:
 
-1. Shared user directories
-2. Synchronized user accounts
-
-In order to use this system in deployment, you'll need to solve both
-these problems.  You can use solutions I've used here a starting
-point, but they will likely need some tweaking.
+1.  The shared file storage
+2.  The user image
+3.  The sand box image (maybe)
 
 For shared user directories, the instruction below set up a simple NFS
-server, which will work fine for simple, stand-alone installations.
+server, which will work fine for simple, stand-alone installations,
+but if you want to integrate with an existing system, it'll take some
+tweaking.
 
-The solution for synchronized user accounts is much messier and less
-scalable, but you could make it work in a pinch.
+The user image is a standin for whatever environment your users will
+be using.  The version provide is based on the standard jupyter
+notebook image but adds what's necessary to make slurm work.
+
+The sand box image just includes `cfiddle` and `delegate_function`, so
+it should be sufficient for running standard `cfiddle` experiments.
+If you're doing any think fancy with `cfiddle` you'll need to modify
+the the sand box to matches what's in the user's environment.
+
+
 
 ### Implementation Roadmap
 
@@ -92,13 +95,18 @@ machines to get things working.
 
 We will build this system in layers.
 
-First, we will acquire a head node and set of worker nodes and install docker on them.
+First, we will acquire a head node and set of worker nodes and install
+docker on them.
 
-Second, we will create a docker swarm from those nodes to facilitate their management.
+Second, we will create a docker swarm from those nodes to facilitate
+their management.
 
 Third, we will instantiate a set of docker "services" using docker
 "stacks".  This will start several containers on the head node to run
 Slurm and a container on each worker node.
+
+Fourth, we will test the cluster by running some cfiddle experiments
+from the user node.
 
 ## What this Repo Does not Build
 
@@ -124,10 +132,10 @@ please email sjswanson@ucsd.edu if you have questions or need help.
 You will need at least two machines: One worker node and one head node.
 
 The head node can pretty much any server (or virtual machine) that
-runs a recent version of Docker.  You'll need administrative access to
+runs a recent version of Docker.  You'll need root access to
 it.
 
-The worker machine is where the CFiddle experiments will run.  It
+The worker machines are where the CFiddle experiments will run.  They
 should be dedicated to this task and not be running anything else.
 
 For testing this guide, we used bare metal cloud servers from
@@ -141,16 +149,25 @@ and be able to ssh into them.
 
 We built this guide with the following software:
 
-1. Ubuntu 22.04
+1. Ubuntu 22.04 (the `ubuntu:jammy` docker image)
 2. Docker version 24.0.5
-3. The latest version of `CFiddle`
+3. The latest version of `cfiddle`
 4. The latest version of `delegate_function`
+5. Python 3.10
+6. The `jupyter/scipy-notebook:python-3.10` image.
 
 In principle, the version of Linux shouldn't matter much, but some of
 the scripts will probably need to be adjusted.
 
-We are using some moderately new docker features.  In particular, we
-need docker-compose.yml 3.8, so you'll need at least Docker 19.03.
+We are using some newish docker features.  In particular, we need
+docker-compose.yml 3.8 (which requires at least Docker 19.03), and we
+use `CAP_PERFMON` which was broken in docker until recently.  It works
+in the version listed above, but I'm not sure when it started working
+
+The versions of python _on all the images_ must match, since
+`delegate_function` runs everywhere.  Changing to a different version
+is complicated.  I chose 3.10 because it's what got installed under
+`ubuntu:jammy`.  Then I selected the matching jupyter image to match.
 
 ## Step 1:  Provisioning the Servers
 
@@ -181,17 +198,21 @@ Then install docker:
 ./cfiddle-cluster/install_docker.sh
 ```
 
-From here on we'll refer to the IP address of the head node as `HEAD_ADDR`, and the addresses of the workers as `WORKER_0_ADDR` and `WORKER_1_ADDR`.
+From here on we'll refer to the IP address of the head node as
+`HEAD_ADDR`, and use `WORKER_ADDRS` to refer to the list of workers.
+Both of these can be set in `config.sh`.
+
 
 If you get your machines from a cloud provider, they have two IP
-addresses -- An private IP address on the cloud provider's network
-and a public address that you can SSH into.  We are going to use
-the _internal_ addresses for setting up the cluster.
+addresses -- An private IP address on the cloud provider's network and
+a public address that you can SSH into.  We are going to use the
+_external_ addresses for setting up the cluster.
 
 
 ## Step 2: Setting up Head Node
 
-SSH into the head node.  Edit `config.sh` to include the IP addresses of your machines:
+SSH into the head node.  Edit `config.sh` to include the IP addresses
+of your machines:
 
 ```
 cd cfiddle-cluster
@@ -235,8 +256,8 @@ To add a manager to this swarm, run 'docker swarm join-token manager' and follow
 Copy the `docker swarm join` command, and run it on each of the workers:
 
 ```
-ssh $WORKER_0_ADDR 'docker swarm join <...copied command...>'
-ssh $WORKER_1_ADDR 'docker swarm join <...copied command...>'
+for W in $WORKER_ADDRS; ssh $W 'docker swarm join <...copied command...>'
+
 ```
 
 And verify that your swarm now has three members:
@@ -277,8 +298,7 @@ container on the worker nodes, so it needs to be in the `docker`
 group.
 
 ```
-ssh $WORKER_0_ADDR useradd -r -s /usr/sbin/nologin -u 7000 -G docker cfiddle
-ssh $WORKER_1_ADDR useradd -r -s /usr/sbin/nologin -u 7000 -G docker cfiddle
+for W in $WORKER_ADDRS; ssh $W -r -s /usr/sbin/nologin -u 7000 -G docker cfiddle
 ```
 
 Second, we'll create some test users.  These are stand-ins for your
@@ -293,28 +313,15 @@ useradd -p test_user2 test_user2 -m
 useradd -p jovyan -g 100 -u 1000 jovyan -m
 ```
 
-Now, for a bug kludge: We need to get these users into docker images
-so they are available on the worker nodes:
-
-```
-grep 'cfiddle\|test_\|jovyan' /etc/passwd > cluster_password.txt
-grep 'cfiddle\|test_\|jovyan' /etc/group > cluster_group.txt
-```
 
 #root@cfiddle-cluster-testing:~/cfiddle-cluster# groupadd --gid 1001 docker_users
-
 #-- probably not necessary?  But the group ids for the docker group don't match across docker images and the physical machines
-
 #root@cfiddle-cluster-testing:~/cfiddle-cluster# 
-
-
 #root@cfiddle-cluster-testing:~/cfiddle-cluster# groupadd cfiddlers -- necessary?
 
 ## Step 6: Set up NFS
 
-For our quick-and-dirty NFS server, we need to:
-
-Load the necessary modules, install a package and populate `/etc/exports`:
+For our quick-and-dirty NFS server, we need to load the necessary modules, install a package, and populate `/etc/exports`:
 
 ```
 modprobe nfs
@@ -351,7 +358,6 @@ Finally, we can build the docker images
 docker compose build --progress=plain
 ```
 
-
 ## Step 7: Distribute The Docker Images
 
 We need to share the images we built with the worker nodes.  The
@@ -381,7 +387,7 @@ You can then distributed the images to the workers with:
 To bring up the cluster, we can just do:
 
 ```
-docker stack deploy -c docker-compose.yml slurm-stack
+./start_cluster.sh
 ```
 
 which will yield:

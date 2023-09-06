@@ -1,4 +1,5 @@
-FROM jupyter/scipy-notebook:python-3.10
+FROM ubuntu:jammy
+#jupyter/scipy-notebook:python-3.10
 
 LABEL org.opencontainers.image.source="https://github.com/NVSL/cfiddle-cluster" \
       org.opencontainers.image.title="cfiddle-slurm-cluster-sandbox" \
@@ -13,28 +14,14 @@ RUN mkdir /slurm
 RUN mkdir /build
 WORKDIR /slurm
 
-
-#COPY ./slurm.conf ./
-#COPY ./slurmdbd.conf ./
-
-#COPY ./install_slurm.sh ./
-#COPY ./config.sh ./
-#RUN  ( . ./config.sh; env; ./install_slurm.sh  --client-only )
-
-#RUN groupadd -r cfiddle
-#RUN useradd -r -g cfiddle cfiddle
+COPY ./config.sh ./
+COPY ./install_python.sh ./
+RUN ( . ./config.sh; env; ./install_python.sh)
 
 COPY ./cfiddle ./cfiddle
 COPY ./delegate-function ./delegate-function
 COPY ./install_cfiddle.sh  ./
 RUN  ( . ./config.sh; ./install_cfiddle.sh )
-
-# This is very kludgy.  Definitely not produciton ready
-#COPY test_slurm.sh ./
-#COPY cluster_password.txt ./
-#RUN cat ./cluster_password.txt >> /etc/passwd
-#COPY cluster_group.txt ./
-#RUN cat ./cluster_group.txt >> /etc/group
 
 RUN mkdir -p /cfiddle_scratch
 RUN chmod a+rwx /cfiddle_scratch

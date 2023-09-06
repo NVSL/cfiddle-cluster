@@ -2,8 +2,8 @@
 
 set -ex
 
-grep 'cfiddle\|test_\|jovyan' /etc/passwd > cluster_password.txt
-grep 'cfiddle\|test_\|jovyan' /etc/group > cluster_group.txt
+#grep 'cfiddle\|test_\|jovyan' /etc/passwd > cluster_password.txt
+#grep 'cfiddle\|test_\|jovyan' /etc/group > cluster_group.txt
 
 
 docker compose --progress=plain  build
