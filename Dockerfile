@@ -24,21 +24,15 @@ RUN mkdir /slurm
 RUN mkdir /build
 WORKDIR /slurm
 
-COPY ./SLURM_TAG ./
-COPY ./IMAGE_TAG ./
-
 COPY ./slurm.conf ./
 COPY ./slurmdbd.conf ./
-
-
 COPY ./cfiddle ./cfiddle
 COPY ./delegate-function ./delegate-function
-#COPY ./hungwei-class ./hungwei-class
 
 COPY ./install_cfiddle.sh  ./
-COPY ./env.sh ./
-RUN  ( . ./env.sh; ./install_cfiddle.sh )
-#RUN  (. ./env.sh; cd hungwei-class; pip install -e .)
+COPY ./config.sh ./
+RUN  ( . ./config.sh; ./install_cfiddle.sh )
+#RUN  (. ./config.sh; cd hungwei-class; pip install -e .)
 
 
 #RUN groupadd cfiddlers
@@ -46,7 +40,7 @@ RUN  ( . ./env.sh; ./install_cfiddle.sh )
 #RUN useradd -r -s /usr/sbin/nologin -u 7000 -G docker_users -p fiddle cfiddle
 
 COPY ./install_slurm.sh ./
-RUN  ( . ./env.sh; env; ./install_slurm.sh)
+RUN  ( . ./config.sh; ./install_slurm.sh)
 
 # This is very kludgy.  Definitely not produciton ready
 COPY test_slurm.sh ./
@@ -58,7 +52,7 @@ RUN cat ./cluster_group.txt >> /etc/group
 #COPY ./cfiddle_sudoers /etc/sudoers.d
 
 COPY ./install_docker.sh ./
-RUN (. ./env.sh; ./install_docker.sh --client-only)
+RUN (. ./config.sh; ./install_docker.sh --client-only)
 
 HEALTHCHECK NONE
 

@@ -2,14 +2,13 @@
 set -ex
 
 
+
 if ! [ -z ${1+x} ] && [ $1 = "--client-only" ]; then
 CLIENT_ONLY=$1
 else
 CLIENT_ONLY="no"
 fi
 
-SLURM_TAG=$(cat SLURM_TAG)
-IMAGE_TAG=$(cat IMAGE_TAG)
 GOSU_VERSION=1.11
 
 groupadd -r --gid=$SLURM_GID slurm 
@@ -54,9 +53,12 @@ fi
 
 mkdir -p /etc/slurm/
 cp slurm.conf /etc/slurm/slurm.conf
-cp slurmdbd.conf /etc/slurm/slurmdbd.conf
 
 if [ $CLIENT_ONLY = "no" ]; then
+cp slurmdbd.conf /etc/slurm/slurmdbd.conf
+chown slurm:slurm /etc/slurm/slurmdbd.conf
+chmod 600 /etc/slurm/slurmdbd.conf
+
 touch /var/lib/slurmd/node_state \
         /var/lib/slurmd/front_end_state \
         /var/lib/slurmd/job_state \
@@ -81,7 +83,5 @@ chown -R slurm:slurm /var/*/slurm*
 fi
 
 
-chown slurm:slurm /etc/slurm/slurmdbd.conf
-chmod 600 /etc/slurm/slurmdbd.conf
 
 #echo "NodeName=$(hostname) RealMemory=1000 State=UNKNOWN" >> /etc/slurm/slurm.conf

@@ -19,13 +19,12 @@ services:
           - "node.labels.slurm_role==head_node"
 
   slurmdbd-srv:
-    image: cfiddle-cluster:${IMAGE_TAG}
+    image: cfiddle-cluster:latest
     build:
       context: .
     command: ["slurmdbd"]
     hostname: slurmdbd
     volumes:
-#      - etc_slurm:/etc/slurm
       - etc_munge:/etc/munge
       - var_log_slurm:/var/log/slurm
     depends_on:
@@ -38,11 +37,10 @@ services:
           - "node.labels.slurm_role==head_node"
 
   slurmctld-srv:
-    image: cfiddle-cluster:${IMAGE_TAG}
+    image: cfiddle-cluster:latest
     command: ["slurmctld"]
     hostname: slurmctld
     volumes:
- #     - etc_slurm:/etc/slurm
       - etc_munge:/etc/munge
       - slurm_jobdir:/data
       - var_log_slurm:/var/log/slurm
@@ -81,14 +79,13 @@ services:
           - "node.labels.slurm_role==head_node"
 
   c1-srv: &worker
-    image: cfiddle-cluster:${IMAGE_TAG}
+    image: cfiddle-cluster:latest
     command: ["slurmd"]
     environment:
         DELEGATE_FUNCTION_DEBUG_ENABLED: "yes"
     hostname: c1
     volumes:
       - etc_munge:/etc/munge
-#      - etc_slurm:/etc/slurm
       - var_log_slurm:/var/log/slurm
       - home_nfs:/home
       - cfiddle_scratch:/cfiddle_scratch
@@ -110,6 +107,14 @@ services:
     <<: *worker
     hostname: c2
 
+  sandbox-dummy: # this is just here to build the image.  It'll get spawned by the worker node.
+    image: cfiddle-sandbox:latest
+    build:
+      context: .
+      dockerfile: ./sandbox.Dockerfile
+    deploy:
+      replicas: 0
+      
 #  c3: &c3
 #    <<: *worker
 #    hostname: c3##

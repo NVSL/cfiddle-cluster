@@ -2,7 +2,7 @@
 
 set -ex
 
-for IMAGE_NAME in cfiddle-cluster:$IMAGE_TAG cfiddle-user:latest; do 
+for IMAGE_NAME in cfiddle-cluster:latest cfiddle-user:latest cfiddle-sandbox:latest; do 
     docker tag $IMAGE_NAME $DOCKERHUB_USERNAME/$IMAGE_NAME
     docker push $DOCKERHUB_USERNAME/$IMAGE_NAME
     ssh root@$WORKER_0_ADDR docker pull $DOCKERHUB_USERNAME/$IMAGE_NAME

@@ -44,7 +44,7 @@ sequence:
     temporary_file_root: /home/tmp
     delegate_executable_path: /usr/local/bin/delegate-function-run
   - type: DockerDelegate
-    docker_image: cfiddle-user:latest
+    docker_image: cfiddle-sandbox:latest
     temporary_file_root: /cfiddle_scratch
     delegate_executable_path: /opt/conda/bin/delegate-function-run
     docker_cmd_line_args: ['--entrypoint', '/usr/bin/env', '--mount', 'type=volume,dst=/cfiddle_scratch,source=slurm-stack_cfiddle_scratch']

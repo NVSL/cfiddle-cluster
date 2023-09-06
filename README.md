@@ -191,17 +191,17 @@ the _internal_ addresses for setting up the cluster.
 
 ## Step 2: Setting up Head Node
 
-SSH into the head node.  Edit `env.sh` to include the IP addresses of your machines:
+SSH into the head node.  Edit `config.sh` to include the IP addresses of your machines:
 
 ```
 cd cfiddle-cluster
-pico env.sh
+pico config.sh
 ```
 
-Then source `env.sh`, to set the environment variables we need:
+Then source `config.sh`, to set the environment variables we need:
 
 ```
-source env.sh
+source config.sh
 ```
 
 You'll need to do that everytime you login.
@@ -360,7 +360,7 @@ registery](https://docs.docker.com/registry/deploying/).  I couldn't
 get that to work, we will use [docker hub](http://dockerhub.com/)
 instead.
 
-Create an account, and put your username in `env.sh`.
+Create an account, and put your username in `config.sh`.
 
 Then, login with your username:
 
@@ -408,12 +408,12 @@ Which should show:
 
 ```
 ID             NAME                        MODE         REPLICAS   IMAGE                       PORTS
-zapsx66pxy1s   slurm-stack_c1-srv          replicated   1/1        cfiddle-cluster:21.08.6.1
-rs9zndo78p33   slurm-stack_c2-srv          replicated   1/1        cfiddle-cluster:21.08.6.1
+zapsx66pxy1s   slurm-stack_c1-srv          replicated   1/1        cfiddle-cluster:latest
+rs9zndo78p33   slurm-stack_c2-srv          replicated   1/1        cfiddle-cluster:latest
 t1j5f1snf63m   slurm-stack_mysql-srv       replicated   1/1        mysql:5.7
-iaq2q7rd1t0y   slurm-stack_slurmctld-srv   replicated   1/1        cfiddle-cluster:21.08.6.1
-nrjz81rjjja1   slurm-stack_slurmdbd-srv    replicated   1/1        cfiddle-cluster:21.08.6.1
-3rygur9wnlq6   slurm-stack_userhost-srv    replicated   1/1        cfiddle-cluster:21.08.6.1
+iaq2q7rd1t0y   slurm-stack_slurmctld-srv   replicated   1/1        cfiddle-cluster:latest
+nrjz81rjjja1   slurm-stack_slurmdbd-srv    replicated   1/1        cfiddle-cluster:latest
+3rygur9wnlq6   slurm-stack_userhost-srv    replicated   1/1        cfiddle-cluster:latest
 ```
 
 The `c1` and `c2` services are running on our two worker nodes to run
@@ -448,9 +448,9 @@ docker container ls
 Yielding:
 ```
 CONTAINER ID   IMAGE                       COMMAND                  CREATED         STATUS         PORTS                 NAMES
-9753ad8fc5de   cfiddle-cluster:21.08.6.1   "/usr/local/bin/dock…"   7 minutes ago   Up 7 minutes                         slurm-stack_userhost-srv.1.pfzqidlnq7ow74y8eys3tr5vs
-948cf848d285   cfiddle-cluster:21.08.6.1   "/usr/local/bin/dock…"   7 minutes ago   Up 7 minutes                         slurm-stack_slurmctld-srv.1.hwkx0uibtsohblfxyl5zcybz7
-dd8e12974325   cfiddle-cluster:21.08.6.1   "/usr/local/bin/dock…"   7 minutes ago   Up 7 minutes                         slurm-stack_slurmdbd-srv.1.yz65lbuqf2pmme2ovj2sges8s
+9753ad8fc5de   cfiddle-cluster:latest      "/usr/local/bin/dock…"   7 minutes ago   Up 7 minutes                         slurm-stack_userhost-srv.1.pfzqidlnq7ow74y8eys3tr5vs
+948cf848d285   cfiddle-cluster:latest      "/usr/local/bin/dock…"   7 minutes ago   Up 7 minutes                         slurm-stack_slurmctld-srv.1.hwkx0uibtsohblfxyl5zcybz7
+dd8e12974325   cfiddle-cluster:latest      "/usr/local/bin/dock…"   7 minutes ago   Up 7 minutes                         slurm-stack_slurmdbd-srv.1.yz65lbuqf2pmme2ovj2sges8s
 f7b4042bea25   mysql:5.7                   "docker-entrypoint.s…"   7 minutes ago   Up 7 minutes   3306/tcp, 33060/tcp   slurm-stack_mysql-srv.1.4sa09y0co9mwnq1ismae1kgfg
 ```
 
@@ -548,7 +548,7 @@ https://github.com/nateGeorge/slurm_gpu_ubuntu
 Grab the munge uid and group we will use, and build the munge use and group
 
 ```
-. env.sh
+. config.sh
 groupadd munge -g $MUNGE_GID
 useradd munge -u $MUNGE_UID -g $MUNGE_GID
 ```
