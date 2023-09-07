@@ -170,6 +170,17 @@ The versions of python _on all the images_ must match, since
 is complicated.  I chose 3.10 because it's what got installed under
 `ubuntu:jammy`.  Then I selected the matching jupyter image to match.
 
+### Docker.com Account
+
+You'll need an account on docker.com, and you'll need to be logged in
+before you run the script to build the cluster. You can do that with:
+
+```
+docker login -u $DOCKERHUB_USERNAME
+```
+
+Be sure to do this!  Otherwise, the build script will fail part way through.
+
 ## The Actual Implementation
 
 The actual implementation for all of this is in `build_cluster.sh`.

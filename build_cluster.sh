@@ -139,14 +139,6 @@ docker compose build --progress=plain
 # get that to work, we will use [docker hub](http://dockerhub.com/)
 # instead.
 # 
-# Create an account, and put your username in `config.sh`.
-# 
-# Then, login with your username:
-# 
-while ! docker login -u $DOCKERHUB_USERNAME; do true; done
-# 
-# It'll ask you for your password and let you know you've succeeded.
-# 
 # You can then distributed the images to the workers with:
 # 
 ./distribute_images.sh
@@ -168,9 +160,9 @@ for W in $WORKER_ADDRS; do ssh $W useradd -r -s /usr/sbin/nologin -u 7000 -G doc
 # One nice thing about slurm is that we don't need to create these
 # users on the worker nodes.  Everything is based on numeric user IDs.
 # 
+useradd -p jovyan -g 100 -u 1000 jovyan -m
 useradd -p test_user1 test_user1 -m 
 useradd -p test_user2 test_user2 -m
-useradd -p jovyan -g 100 -u 1000 jovyan -m
 #
 # Then we will populate the jovyan account (which is for testing jupyter notebook) by exatract its contents from the userage and copying them into the local home directory:
 docker create --name extract_jovyan cfiddle-user # create a data only container we can copy out out of
