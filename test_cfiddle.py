@@ -36,12 +36,29 @@ sequence:
   - type: SlurmDelegate
     temporary_file_root: /home/tmp
     delegate_executable_path: /usr/local/bin/delegate-function-run
-""",
+"""
+    ,
 """
 version: 0.1
 sequence:
   - type: SlurmDelegate
     temporary_file_root: /home/tmp
+    delegate_executable_path: /usr/local/bin/delegate-function-run
+  - type: DockerDelegate
+    docker_image: cfiddle-sandbox:latest
+    temporary_file_root: /cfiddle_scratch
+    delegate_executable_path: /usr/local/bin/delegate-function-run
+    docker_cmd_line_args: ['--entrypoint', '/usr/bin/env', '--mount', 'type=volume,dst=/cfiddle_scratch,source=slurm-stack_cfiddle_scratch']
+"""
+    ,
+"""
+version: 0.1
+sequence:
+  - type: SlurmDelegate
+    temporary_file_root: /home/tmp
+    delegate_executable_path: /usr/local/bin/delegate-function-run
+  - type: SudoDelegate
+    user: cfiddle
     delegate_executable_path: /usr/local/bin/delegate-function-run
   - type: DockerDelegate
     docker_image: cfiddle-sandbox:latest
@@ -59,9 +76,7 @@ def SomeYAML(request):
 
 def test_delegate(SomeYAML):
     cfiddle.enable_debug()
-    
     with cfiddle_config(RunnerExecutionMethod_type=execution_method(SomeYAML)):
-        
         b = build(code(r"""
 #include <iostream>
 

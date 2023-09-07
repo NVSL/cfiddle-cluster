@@ -27,22 +27,18 @@ COPY ./delegate-function ./delegate-function
 
 COPY ./install_cfiddle.sh  ./
 RUN  ( . ./config.sh; ./install_cfiddle.sh )
-#RUN  (. ./config.sh; cd hungwei-class; pip install -e .)
 
-
-#RUN groupadd cfiddlers
-#RUN groupadd --gid 1001 docker_users
-#RUN useradd -r -s /usr/sbin/nologin -u 7000 -G docker_users -p fiddle cfiddle
 
 COPY ./install_slurm.sh ./
 RUN  ( . ./config.sh; ./install_slurm.sh)
 
-COPY test_slurm.sh ./
-
-#COPY ./cfiddle_sudoers /etc/sudoers.d
+#COPY test_slurm.sh ./
 
 COPY ./install_docker.sh ./
-RUN (. ./config.sh; ./install_docker.sh --client-only)
+RUN (. ./config.sh; ./install_docker.sh)
+
+RUN useradd -r -s /usr/sbin/nologin -u 7000 -G docker -p fiddle cfiddle
+COPY ./cfiddle_sudoers /etc/sudoers.d/
 
 HEALTHCHECK NONE
 
