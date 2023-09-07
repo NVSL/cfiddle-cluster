@@ -28,8 +28,8 @@ for W in $WORKER_ADDRS; do ssh $W docker image prune;done
 
 # delete volumes
 
-./delete_volume.sh
-docker volumes prune
+./delete_volumes.sh
+docker volume prune
 
 # cleanup nfs exports and stop nfs.
 
