@@ -252,15 +252,15 @@ docker service ls
 # 
 # ```
 # ID             NAME                        MODE         REPLICAS   IMAGE                    PORTS
-# pvwm3nyvkh4v   slurm-stack_c1-srv          replicated   0/1        cfiddle-cluster:latest
-# y0arvvpuq4vu   slurm-stack_c2-srv          replicated   0/1        cfiddle-cluster:latest
-# 8tyex1qxatss   slurm-stack_mysql-srv       replicated   1/1        mysql:5.7
-# kjic5z4rb68y   slurm-stack_sandbox-dummy   replicated   0/0        cfiddle-sandbox:latest
-# r7o5uxo2h0v8   slurm-stack_slurmctld-srv   replicated   0/1        cfiddle-cluster:latest
-# 5kg7w9ljmcv7   slurm-stack_slurmdbd-srv    replicated   0/1        cfiddle-cluster:latest
-# kiuvhsfqt6su   slurm-stack_userhost-srv    replicated   0/1        cfiddle-user:latest      *:8888->8888/tcp
+# 8pza528flemh   slurm-stack_c1-srv          replicated   1/1        cfiddle-cluster:latest
+# kwgfrf3qq6fw   slurm-stack_c2-srv          replicated   1/1        cfiddle-cluster:latest
+# gf5ptcaagz63   slurm-stack_mysql-srv       replicated   1/1        mysql:5.7
+# k7jq67iu3dcd   slurm-stack_sandbox-dummy   replicated   0/0        cfiddle-sandbox:latest
+# h3c4rgkbcamg   slurm-stack_slurmctld-srv   replicated   1/1        cfiddle-cluster:latest
+# 3un6uhoyl51c   slurm-stack_slurmdbd-srv    replicated   1/1        cfiddle-cluster:latest
+# 1tfmmmq62qe1   slurm-stack_userhost-srv    replicated   1/1        cfiddle-user:latest      *:8888->8888/tcp
 # ```
-# 
+#
 # The `c1` and `c2` services are running on our two worker nodes to run
 # Slurm jobs.  The next three are running on the head node to managed
 # the cluster.

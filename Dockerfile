@@ -44,6 +44,8 @@ HEALTHCHECK NONE
 
 #RUN apt-get install -y openssh-server acl
 
+COPY ./run_jobs_and_watch.sh ./
+COPY ./test_cfiddle.py ./
 COPY slurm-entrypoint.sh /usr/local/bin/slurm-entrypoint.sh
 RUN chmod a+x /usr/local/bin/slurm-entrypoint.sh
 

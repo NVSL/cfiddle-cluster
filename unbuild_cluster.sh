@@ -26,6 +26,9 @@ for W in $WORKER_ADDRS; do ssh $W docker container prune;done
 docker image prune
 for W in $WORKER_ADDRS; do ssh $W docker image prune;done
 
+docker network prune
+for W in $WORKER_ADDRS; do ssh $W docker image prune;done
+
 # delete volumes
 
 ./delete_volumes.sh
