@@ -128,7 +128,6 @@ modprobe nfs
 modprobe nfsd
 apt-get install -y nfs-kernel-server
 echo '/home                  *(rw,no_subtree_check) ## cfiddle_cluster' >> /etc/exports
-echo '/etc/munge             *(rw,no_subtree_check,no_root_squash) ## cfiddle_cluster' >> /etc/exports
 exportfs -ra
 #
 # THis will complain about /etc/munge not existing.  We'll fix that shortly.
@@ -230,6 +229,7 @@ docker cp extract_munge:/etc/munge/munge.key /etc/munge/munge.key
 chown -R $MUNGE_UID:$MUNGE_GID /etc/munge
 chmod -R go-rwx  /etc/munge
 docker container rm extract_munge  # cleanup
+echo '/etc/munge             *(rw,no_subtree_check,no_root_squash) ## cfiddle_cluster' >> /etc/exports
 exportfs -ra # Let nfsd know that /etc/munge not exists
 #
 # ## Step 9: Bring up the Cluster
