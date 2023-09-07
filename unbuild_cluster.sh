@@ -40,6 +40,10 @@ exportfs -ra
 # Remove munge key
 rm -rf /etc/munge
 
+# delete cfiddle and delegate_function
+
+rm -rf cfiddle delegate_function
+
 # Tear down swarm
 
 for W in $WORKER_ADDRS; do ssh $W docker swarm leave -f;done
