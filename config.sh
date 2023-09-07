@@ -1,10 +1,16 @@
 if ! [ -e install_slurm.sh ] ; then
     echo "You need to source this in the root of the cfiddle-cluster repo"
 else
-    export HEAD_ADDR=139.178.86.127
-    export WORKER_ADDRS="147.75.53.115 145.40.102.93"
-    export DOCKERHUB_USERNAME=stevenjswanson
 
+    ## you need to set these or put them in a file called cluster_nodes.sh
+    ## Values in cluster_nodes.sh will override what's here.
+    
+    #export HEAD_ADDR=
+    #export WORKER_ADDRS=
+    #export DOCKERHUB_USERNAME=
+
+    [ -e ./cluster_nodes.sh ] && . ./cluster_nodes.sh
+ 
     export SLURM_UID=990
     export SLURM_GID=990
 
