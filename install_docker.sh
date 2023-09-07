@@ -17,10 +17,20 @@ echo \
   "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
      tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt-get update
+
 if [ $CLIENT_ONLY = "no" ]; then
     apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 else
-    apt-get install -y docker-ce-cli
+    apt-get install -y docker-ce-cli docker-ce # we only iclude
+					       # docker-ce so it'll
+					       # create the docker
+					       # group in a way
+					       # consistent with the
+					       # other images.  A
+					       # better solution would
+					       # probably be to create
+					       # the docker group
+					       # ourselves.
 fi
     
 
