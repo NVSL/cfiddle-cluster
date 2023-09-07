@@ -12,6 +12,9 @@ else
     export MUNGE_UID=991
     export MUNGE_GID=991
 
+    export DELEGATE_FUNCTION_GIT_TAG=main
+    export CFIDDLE_GIT_TAG=devel
+    
     # create env variable aliases for the containers running our services, if we have docker available
     if which docker >/dev/null && docker container ls > /dev/null; then
 	CONTAINER_ALIASES=$(docker container ls |perl -ne 'if (/ (slurm-stack_([^\.]*)-srv\.\S*)/) { print("export $2=$1\n");}')

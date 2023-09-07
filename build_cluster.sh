@@ -2,7 +2,7 @@
 
 set -ex 
 
-# ## Step 1:  Provisioning the Servers
+# ## Step 1:  Provisioning the Servers and Installing Docker
 # 
 # We will assume you are setting up a cluster with one head node and two
 # workers.  Adding more workers is straightforward.  If you only have
@@ -21,11 +21,9 @@ set -ex
 # you'll need to cut and paste)
 # 
 # export DEBIAN_FRONTEND=noninteractive
-# apt-get update && apt-get upgrade -y
-# apt-get install -y git
+# apt-get update && apt-get upgrade -y && apt-get install -y git
 # git clone https://github.com/NVSL/cfiddle-cluster.git
 # ./cfiddle-cluster/install_docker.sh
-#
 #
 # From here on we'll refer to the IP address of the head node as
 # `HEAD_ADDR`, and use `WORKER_ADDRS` to refer to the list of workers.
@@ -46,7 +44,7 @@ set -ex
 #
 # Your cluster is now configured!  To bring it up and test it, just run this script:
 #
-# ./build_and_test.sh
+# ./build_cluster.sh
 #
 # Read on to see what the script is doing, but all the code that follows should work as written.
 #
@@ -57,6 +55,12 @@ source config.sh
 # 
 # You'll need to do that everytime you login to maintain your cluster.
 #
+
+# ## Step 4: Install Docker on the Workers
+#
+# Copy of the script to install docker and then run it.
+
+for W in $WORKER_ADDRS; do scp install_docker.sh $W:install_docker.sh; ssh $W bash ./install_docker.sh; done
 
 # ## Step 3: Create A Docker Swarm
 # 
@@ -71,7 +75,7 @@ source config.sh
 # First, on your head node, create the swarm:
 # 
 docker swarm init --advertise-addr $HEAD_ADDR
-SWARM_TOKEN=$(docker swarm join-token -q)
+SWARM_TOKEN=$(docker swarm join-token worker -q)
 # 
 # It'll respond with something like:
 # 
@@ -87,7 +91,7 @@ SWARM_TOKEN=$(docker swarm join-token -q)
 # 
 # Copy the `docker swarm join` command, and run it on each of the workers:
 # 
-for W in $WORKER_ADDRS; ssh $W "docker swarm join $HEAD_ADDR:2377"
+for W in $WORKER_ADDRS; do ssh $W "docker swarm join --token $SWARM_TOKEN $HEAD_ADDR:2377";done
 # 
 # And verify that your swarm now has three members:
 # 
@@ -116,51 +120,25 @@ for W in $WORKER_NODE_IDS; do docker node update --label-add slurm_role=worker $
 # worker container runs on each worker node.
 # 
 # 
-# ## Step 4: Create User Accounts
-# 
-# First, we'll create the `cfiddle` account on each worker.  It will be
-# a privileged account that will be used to spawn the sandbox docker
-# container on the worker nodes, so it needs to be in the `docker`
-# group.
-# 
-for W in $WORKER_ADDRS; do ssh $W -r -s /usr/sbin/nologin -u 7000 -G docker cfiddle;done
-# Second, we'll create some test users.  These are stand-ins for your
-# real users.  We are going to create them locally, with their home
-# directories in `/home` and then mount them via NFS into the
-# containers.  As mentioned above, you'll probably want different, more
-# permanent/maintainable solution to this.
-#
-# One nice thing about slurm is that we don't need to create these
-# users on the worker nodes.  Everything is based on numeric user IDs.
-# 
-useradd -p test_user1 test_user1 -m 
-useradd -p test_user2 test_user2 -m
-useradd -p jovyan -g 100 -u 1000 jovyan -m
-# 
-# 
-# #root@cfiddle-cluster-testing:~/cfiddle-cluster# groupadd --gid 1001 docker_users
-# #-- probably not necessary?  But the group ids for the docker group don't match across docker images and the physical machines
-# #root@cfiddle-cluster-testing:~/cfiddle-cluster# 
-# #root@cfiddle-cluster-testing:~/cfiddle-cluster# groupadd cfiddlers -- necessary?
-# 
 # ## Step 6: Set up NFS
 # 
 # For our quick-and-dirty NFS server, we need to load the necessary modules, install a package, and populate `/etc/exports`:
 # 
-# ```
 modprobe nfs
 modprobe nfsd
 apt-get install -y nfs-kernel-server
 echo '/home                  *(rw,no_subtree_check) ## cfiddle_cluster' >> /etc/exports
+echo '/etc/munge             *(rw,no_subtree_check,no_root_squash) ## cfiddle_cluster' >> /etc/exports
 exportfs -ra
-# ```
+#
+# THis will complain about /etc/munge not existing.  We'll fix that shortly.
 # 
 # You can test it with :
 # 
 # ```
 mount -t nfs localhost:/home /mnt
 ls /mnt/
-[ ls /mnt | grep test_user1 ]
+ls /mnt | grep test_user1
 # ```
 # 
 # Which should yield:
@@ -172,10 +150,15 @@ ls /mnt/
 # Clean up the test mount:
 # 
 umount /mnt
-# 
+#
 # ## Step 5: Build the Docker Image
+#
+# Grab the latest Cfiddle and delegate_function
+#
+git clone -b $DELEGATE_FUNCTION_GIT_TAG http://github.com/NVSL/delegate-function
+git clone -b $CFIDDLE_GIT_TAG http://github.com/NVSL/cfiddle
 # 
-# Finally, we can build the docker images
+# Then, we can build the docker images
 # 
 docker compose build --progress=plain
 # 
@@ -232,7 +215,23 @@ docker container rm extract_jovyan  # cleanup
 # #root@cfiddle-cluster-testing:~/cfiddle-cluster# 
 # #root@cfiddle-cluster-testing:~/cfiddle-cluster# groupadd cfiddlers -- necessary?
 
-# 
+# ## Step 9: Set up the Munge Key
+#
+# Munge is what slurm uses for user authentication and it needs a
+# private key set that will be shared across all the members of
+# cluster _and_ the hosts that user submit jobs from.
+#
+# The key lives in /etc/munge/ and each image we built has a different
+# key, which won't work.  So, we will extract the key from one of
+# them, store it locally on the the head node and mount it vis nfs.
+mkdir /etc/munge
+docker create --name extract_munge cfiddle-cluster:latest # create a data only container we can copy out out of
+docker cp extract_munge:/etc/munge/munge.key /etc/munge/munge.key
+chown -R $MUNGE_UID:$MUNGE_GID /etc/munge
+chmod -R go-rwx  /etc/munge
+docker container rm extract_munge  # cleanup
+exportfs -ra # Let nfsd know that /etc/munge not exists
+#
 # ## Step 9: Bring up the Cluster
 # 
 # To bring up the cluster, we can just do:
@@ -260,13 +259,14 @@ docker service ls
 # Which should show:
 # 
 # ```
-# ID             NAME                        MODE         REPLICAS   IMAGE                       PORTS
-# zapsx66pxy1s   slurm-stack_c1-srv          replicated   1/1        cfiddle-cluster:latest
-# rs9zndo78p33   slurm-stack_c2-srv          replicated   1/1        cfiddle-cluster:latest
-# t1j5f1snf63m   slurm-stack_mysql-srv       replicated   1/1        mysql:5.7
-# iaq2q7rd1t0y   slurm-stack_slurmctld-srv   replicated   1/1        cfiddle-cluster:latest
-# nrjz81rjjja1   slurm-stack_slurmdbd-srv    replicated   1/1        cfiddle-cluster:latest
-# 3rygur9wnlq6   slurm-stack_userhost-srv    replicated   1/1        cfiddle-cluster:latest
+# ID             NAME                        MODE         REPLICAS   IMAGE                    PORTS
+# pvwm3nyvkh4v   slurm-stack_c1-srv          replicated   0/1        cfiddle-cluster:latest
+# y0arvvpuq4vu   slurm-stack_c2-srv          replicated   0/1        cfiddle-cluster:latest
+# 8tyex1qxatss   slurm-stack_mysql-srv       replicated   1/1        mysql:5.7
+# kjic5z4rb68y   slurm-stack_sandbox-dummy   replicated   0/0        cfiddle-sandbox:latest
+# r7o5uxo2h0v8   slurm-stack_slurmctld-srv   replicated   0/1        cfiddle-cluster:latest
+# 5kg7w9ljmcv7   slurm-stack_slurmdbd-srv    replicated   0/1        cfiddle-cluster:latest
+# kiuvhsfqt6su   slurm-stack_userhost-srv    replicated   0/1        cfiddle-user:latest      *:8888->8888/tcp
 # ```
 # 
 # The `c1` and `c2` services are running on our two worker nodes to run

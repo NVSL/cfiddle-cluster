@@ -12,9 +12,9 @@
 
 # Remove users
 
-userdel -f test_user1
-userdel -f test_user2
-userdel -f jovyan 
+userdel -rf test_user1
+userdel -rf test_user2
+userdel -rf jovyan 
 
 for W in $WORKER_ADDRS; do ssh $W userdel -f cfiddle;done
 
@@ -35,7 +35,8 @@ docker volumes prune
 
 cp /etc/exports /etc/exports.bak
 grep -v cfiddle_cluster < /etc/exports.bak > /etc/exports
-service nfs stop
+exportfs -ra
+
 
 # Tear down swarm
 
