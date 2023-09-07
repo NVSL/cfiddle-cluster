@@ -120,36 +120,6 @@ for W in $WORKER_NODE_IDS; do docker node update --label-add slurm_role=worker $
 # worker container runs on each worker node.
 # 
 # 
-# ## Step 6: Set up NFS
-# 
-# For our quick-and-dirty NFS server, we need to load the necessary modules, install a package, and populate `/etc/exports`:
-# 
-modprobe nfs
-modprobe nfsd
-apt-get install -y nfs-kernel-server
-echo '/home                  *(rw,no_subtree_check) ## cfiddle_cluster' >> /etc/exports
-exportfs -ra
-#
-# THis will complain about /etc/munge not existing.  We'll fix that shortly.
-# 
-# You can test it with :
-# 
-# ```
-mount -t nfs localhost:/home /mnt
-ls /mnt/
-ls /mnt | grep test_user1
-# ```
-# 
-# Which should yield:
-# 
-# ```
-# test_user1  test_user2
-# ```
-# 
-# Clean up the test mount:
-# 
-umount /mnt
-#
 # ## Step 5: Build the Docker Image
 #
 # Grab the latest Cfiddle and delegate_function
@@ -229,8 +199,38 @@ docker cp extract_munge:/etc/munge/munge.key /etc/munge/munge.key
 chown -R $MUNGE_UID:$MUNGE_GID /etc/munge
 chmod -R go-rwx  /etc/munge
 docker container rm extract_munge  # cleanup
-echo '/etc/munge             *(rw,no_subtree_check,no_root_squash) ## cfiddle_cluster' >> /etc/exports
 exportfs -ra # Let nfsd know that /etc/munge not exists
+
+# ## Step 6: Set up NFS
+# 
+# For our quick-and-dirty NFS server, we need to load the necessary modules, install a package, and populate `/etc/exports`:
+# 
+modprobe nfs
+modprobe nfsd
+apt-get install -y nfs-kernel-server
+echo '/home                  *(rw,no_subtree_check) ## cfiddle_cluster' >> /etc/exports
+echo '/etc/munge             *(rw,no_subtree_check,no_root_squash) ## cfiddle_cluster' >> /etc/exports
+exportfs -ra
+#
+# THis will complain about /etc/munge not existing.  We'll fix that shortly.
+# 
+# You can test it with :
+# 
+# ```
+mount -t nfs localhost:/home /mnt
+ls /mnt/
+ls /mnt | grep test_user1
+# ```
+# 
+# Which should yield:
+# 
+# ```
+# test_user1  test_user2
+# ```
+# 
+# Clean up the test mount:
+# 
+umount /mnt
 #
 # ## Step 9: Bring up the Cluster
 # 
