@@ -40,9 +40,9 @@ exportfs -ra
 # Remove munge key
 rm -rf /etc/munge
 
-# delete cfiddle and delegate_function
+# delete cfiddle and delegate-function
 
-rm -rf cfiddle delegate_function
+rm -rf cfiddle delegate-function
 
 # Tear down swarm
 

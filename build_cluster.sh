@@ -143,7 +143,7 @@ docker compose build --progress=plain
 # 
 # Then, login with your username:
 # 
-docker login -u $DOCKERHUB_USERNAME
+while ! docker login -u $DOCKERHUB_USERNAME; do true; done
 # 
 # It'll ask you for your password and let you know you've succeeded.
 # 
