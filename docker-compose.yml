@@ -136,7 +136,7 @@ volumes:
     driver: local
     driver_opts:
       type: nfs
-      o: addr=${HEAD_ADDR},nolock,soft,rw
+      o: addr=${HEAD_ADDR},nolock,soft,ro
       device: :/etc/munge
   etc_slurm:
   slurm_jobdir:
