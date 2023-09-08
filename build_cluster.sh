@@ -297,6 +297,8 @@ docker container ls
 # 
 # Your container names will be different but you want the one with `userhost` in it.
 #
+# Wait 10 seconds for everything to come up.
+sleep 10
 # config.sh extracts these sevice names and stores them in some environment variables, so we source it again
 . config.sh
 echo $userhost

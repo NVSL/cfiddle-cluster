@@ -15,6 +15,7 @@ RUN mkdir /build
 WORKDIR /slurm
 
 COPY ./config.sh ./
+
 COPY ./install_python.sh ./
 RUN ( . ./config.sh; env; ./install_python.sh)
 

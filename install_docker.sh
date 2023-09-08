@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+set -ex
+
 # copied from here:  https://docs.docker.com/engine/install/ubuntu/
 if ! [ -z ${1+x} ] && [ $1 = "--client-only" ]; then
 CLIENT_ONLY=$1
