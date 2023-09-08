@@ -295,25 +295,31 @@ docker container ls
 # 
 # Your container names will be different but you want the one with `userhost` in it.
 #
-# Wait 10 seconds for everything to come up.
-sleep 10
+# Wait 30 seconds for everything to come up.
+(c=0
+ while [ $c -lt 30 ];do
+     . config.sh
+     if docker exec -it $userhost sinfo; then
+         exit 0
+     fi
+     sleep 1
+     c=$[c+1]
+     echo .
+ done
+ exit 1
+)
+
+# It should provide information about your cluster:
+# 
+# PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
+# normal*      up   infinite      2   idle c[1-2]
+
 # config.sh extracts these sevice names and stores them in some environment variables, so we source it again
 . config.sh
 echo $userhost
 echo $slurmctld
 echo $slurmdbd
 echo $mysql
-# 
-# Then you can check that the cluster is running by executing `sinfo` in the userhost container:
-# 
-docker exec -it $userhost sinfo
-#
-# It should provide information about your cluster:
-# 
-# ```
-# PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
-# normal*      up   infinite      2   idle c[1-2]
-# ```
 #
 # Then we can submit a job:
 docker exec -it $userhost salloc srun bash -c 'echo -ne "hello from "; hostname'
