@@ -32,12 +32,14 @@ RUN  ( . ./config.sh; ./install_cfiddle.sh )
 COPY ./install_slurm.sh ./
 RUN  ( . ./config.sh; ./install_slurm.sh)
 
-#COPY test_slurm.sh ./
-
 COPY ./install_docker.sh ./
 RUN (. ./config.sh; ./install_docker.sh)
 
+COPY ./create_jovyan.sh ./
+RUN (. ./config.sh; ./create_jovyan.sh)
+
 RUN useradd -r -s /usr/sbin/nologin -u 7000 -G docker -p fiddle cfiddle
+
 COPY ./cfiddle_sudoers /etc/sudoers.d/
 
 HEALTHCHECK NONE

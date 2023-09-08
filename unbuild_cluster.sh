@@ -12,8 +12,6 @@
 
 # Remove users
 
-userdel -rf test_user1
-userdel -rf test_user2
 userdel -rf jovyan 
 
 for W in $WORKER_ADDRS; do ssh $W userdel -f cfiddle;done
