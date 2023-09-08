@@ -33,6 +33,4 @@ cluster_group.txt
 cluster_password.txt
 cfiddle
 delegate-function
-export HEAD_ADDR=139.178.86.127
-export WORKER_ADDRS="147.75.53.115 145.40.102.93"
-export DOCKERHUB_USERNAME=stevenjswanson
+cluster_nodes.sh
