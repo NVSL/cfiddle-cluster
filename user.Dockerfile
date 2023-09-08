@@ -28,6 +28,10 @@ COPY ./delegate-function ./delegate-function
 COPY ./install_cfiddle.sh  ./
 RUN  ( . ./config.sh; ./install_cfiddle.sh )
 
+
+COPY ./run_jobs_and_watch.sh ./
+COPY ./test_cfiddle.py ./
+
 COPY usernode-entrypoint.sh /usr/local/bin/usernode-entrypoint.sh
 COPY user-entrypoint.sh /usr/local/bin/user-entrypoint.sh 
 RUN chmod a+x /usr/local/bin/user-entrypoint.sh /usr/local/bin/usernode-entrypoint.sh
