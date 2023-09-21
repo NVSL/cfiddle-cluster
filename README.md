@@ -21,6 +21,8 @@ might be desirable in your situation.
 
 ## What This Repo Builds
 
+![Diagram of the system](.images/Cfiddle-Cluster.png)
+
 The instructions and code in this repo will let you assemble the following:
 
 1.  A group of _worker nodes_ to run cfiddle jobs
@@ -37,6 +39,7 @@ We will assume that the cluster is dedicated to running CFiddle jobs
 and nothing else.
 
 ### Theory of Operation
+
 
 We will configure CFiddle so that when the user's CFiddle code
 (running on the "user node") requests execution of an experiment,
