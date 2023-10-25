@@ -58,6 +58,12 @@ set -ex
 #
 source config.sh
 ./check_config_sanity.sh
+
+# Verify ssh works.
+for W in $WORKER_ADDRS; do 
+    ssh $W true
+done
+
 # 
 # You'll need to do that everytime you login to maintain your cluster.
 #
