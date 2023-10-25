@@ -188,7 +188,9 @@ Be sure to do this!  Otherwise, the build script will fail part way through.
 
 The actual implementation for all of this is in `build_cluster.sh`.
 It's a heavily commented shell script that actually builds and tests
-the cluster.  You can build the cluster with:
+the cluster.  _You will need to read the comments for the first steps to do the initial setup_.
+
+You can build the cluster with:
 
 ```
 ./build_cluster.sh

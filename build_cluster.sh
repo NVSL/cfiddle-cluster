@@ -37,16 +37,22 @@ set -ex
 # ## Step 2: Setting up Head Node
 # 
 # SSH into the head node.  Edit `config.sh` to include the IP addresses
-# of your machines:
+# of your machines and the dockerhub username:
 # 
 # cd cfiddle-cluster
 # pico config.sh
+#
+# Or can put them in `cluster_nodes.sh`.  For `WORKER_ADDRS` you should set 
+# it to a space-separated list of IP addresses.  For example
+#
+# export WORKER_ADDRS="127.0.0.1 127.0.0.2"
 #
 # Your cluster is now configured!  To bring it up and test it, just run this script:
 #
 # ./build_cluster.sh
 #
 # Read on to see what the script is doing, but all the code that follows should work as written.
+# You may need to approve the ssh keys for the worker nodes.
 #
 # Set up your environment:
 #
@@ -56,7 +62,7 @@ source config.sh
 # You'll need to do that everytime you login to maintain your cluster.
 #
 
-# ## Step 4: Install Docker on the Workers
+# ## Step 3: Install Docker on the Workers
 #
 # Copy of the script to install docker and then run it.
 
@@ -189,7 +195,7 @@ docker cp extract_munge:/etc/munge/munge.key /etc/munge/munge.key
 chown -R $MUNGE_UID:$MUNGE_GID /etc/munge
 chmod -R go-rwx  /etc/munge
 docker container rm extract_munge  # cleanup
-exportfs -ra # Let nfsd know that /etc/munge not exists
+#exportfs -ra # Let nfsd know that /etc/munge not exists
 
 # ## Step 6: Set up NFS
 # 
