@@ -157,14 +157,14 @@ docker compose build --progress=plain
 # group.
 # 
 for W in $WORKER_ADDRS; do ssh $W useradd -r -s /usr/sbin/nologin -u 7000 -G docker cfiddle;done
-# Second, we'll create some test users.  These are stand-ins for your
-# real users.  We are going to create them locally, with their home
-# directories in `/home` and then mount them via NFS into the
+# Second, we'll create the jupyter test user.  It is a stand-in for your
+# real users.  We are going to create it locally, with its home
+# directory in `/home` and then mount them via NFS into the
 # containers.  As mentioned above, you'll probably want different, more
-# permanent/maintainable solution to this.
+# permanent/maintainable solution for creating users.
 #
-# One nice thing about slurm is that we don't need to create these
-# users on the worker nodes.  Everything is based on numeric user IDs.
+# One nice thing about slurm is that we don't need to create the user
+# on the worker nodes.  Everything is based on numeric user IDs.
 #
 ./create_jovyan.sh
 #
@@ -215,13 +215,13 @@ exportfs -ra
 # ```
 mount -t nfs localhost:/home /mnt
 ls /mnt/
-ls /mnt | grep test_user1
+[ $(ls /mnt | grep jovyan) == "jovyan" ] 
 # ```
 # 
 # Which should yield:
 # 
 # ```
-# test_user1  test_user2
+# jovyan
 # ```
 # 
 # Clean up the test mount:
@@ -330,4 +330,6 @@ echo $mysql
 # Then we can submit a job:
 docker exec -it $userhost salloc srun bash -c 'echo -ne "hello from "; hostname'
 # and that's it!
+
+echo "####################### Building the cluster completed successfully! #######################"
 exit 0
