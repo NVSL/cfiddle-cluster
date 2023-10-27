@@ -60,6 +60,7 @@ services:
     image: cfiddle-user:latest
     environment:
       DELEGATE_FUNCTION_DEBUG_ENABLED: "yes"
+      DOCKER_STACKS_JUPYTER_CMD: "notebook"
     hostname: userhost
     command: ["start-notebook.sh", "--NotebookApp.token='slurmify'" ]
     user: root
