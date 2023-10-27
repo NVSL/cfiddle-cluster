@@ -40,7 +40,7 @@ slurm_config = """
 version: 0.1
 sequence:
   - type: SlurmDelegate
-    debug_pre_hook: SHELL
+#    debug_pre_hook: SHELL
     temporary_file_root: /home/tmp
     delegate_executable_path: /usr/local/bin/delegate-function-run
 """
@@ -49,12 +49,12 @@ slurm_to_docker_config = """
 version: 0.1
 sequence:
   - type: SlurmDelegate
-    debug_pre_hook: SHELL
+#    debug_pre_hook: SHELL
     temporary_file_root: /home/tmp
     delegate_executable_path: /usr/local/bin/delegate-function-run
   - type: DockerDelegate
     docker_image: cfiddle-sandbox:latest
-    debug_pre_hook: SHELL
+#    debug_pre_hook: SHELL
     temporary_file_root: /cfiddle_scratch
     delegate_executable_path: /usr/local/bin/delegate-function-run
     docker_cmd_line_args: ['--entrypoint', '/usr/bin/env', '--mount', 'type=volume,dst=/cfiddle_scratch,source=slurm-stack_cfiddle_scratch']
@@ -65,14 +65,14 @@ version: 0.1
 sequence:
   - type: SlurmDelegate
     temporary_file_root: /home/tmp
-    debug_pre_hook: SHELL
+#    debug_pre_hook: SHELL
     delegate_executable_path: /usr/local/bin/delegate-function-run
   - type: SudoDelegate
-    debug_pre_hook: SHELL
+#    debug_pre_hook: SHELL
     user: cfiddle
     delegate_executable_path: /usr/local/bin/delegate-function-run
   - type: DockerDelegate
-    debug_pre_hook: SHELL
+#    debug_pre_hook: SHELL
     docker_image: cfiddle-sandbox:latest
     temporary_file_root: /cfiddle_scratch
     delegate_executable_path: /usr/local/bin/delegate-function-run
@@ -98,7 +98,7 @@ void hello() {
 """))
 
 
-@pytest.mark.parametrize("user,the_yaml",
+@pytest.mark.parametrize("target_user,the_yaml",
                          [
                              ("root", trivial_config),
                              ("root", slurm_config),
@@ -109,7 +109,12 @@ void hello() {
                              ("jovyan", slurm_to_sudo_to_docker_config),
                          ],
                          ids = extract_id)
-def test_delegate(the_code, the_yaml, user):
+def test_delegate(the_code, the_yaml, target_user):
+    import getpass
+    actual_user = getpass.getuser()
+    if actual_user != target_user:
+        pytest.skip("This test is for {target_user} not {actual_user}")
+        return
     
-    with cfiddle_config(eRunnerExecutionMethod_type=execution_method(the_yaml)):
+    with cfiddle_config(RunnerExecutionMethod_type=execution_method(the_yaml)):
         r = run(the_code, "hello")

@@ -209,11 +209,12 @@ Which will show you a live-updating view of the job queue.  When it's
 empty (or you get board), Control-C to quit, and then `exit` to get
 out of the user node container.
 
-To make sure cfiddle is working:
+To make sure cfiddle is working as root and as a normal user:
 
 ```
 . config.sh
 docker exec -it $userhost pytest -s test_cfiddle.py
+docker exec -u jovyan  -w /home/jovyan -it $userhost pytest -s /slurm/test_cfiddle.py
 ```
 
 ## Step 10: Access Jupyter
